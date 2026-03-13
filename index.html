@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Gym Diary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #ff4d4d;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #ff4d4d;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .header h1 span {
+            color: #ffffff;
+        }
+
+        .header p {
+            color: #888;
+            margin-top: 8px;
+            font-size: 1rem;
+        }
+
+        .backup-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-backup {
+            padding: 10px 20px;
+            border: 2px solid #00ff88;
+            background: transparent;
+            color: #00ff88;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-backup:hover {
+            background: #00ff88;
+            color: #0f0f1a;
+        }
+
+        .btn-backup.import {
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        .btn-backup.import:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-backup.clear-all {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .btn-backup.clear-all:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid #2a2a4a;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #ff4d4d;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            font-size: 1.5rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-nav button {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calendar-nav button:hover {
+            background: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        .calendar-nav .month-year {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-grid .day-name {
+            text-align: center;
+            padding: 8px;
+            font-size: 0.8rem;
+            color: #ff4d4d;
+            font-weight: 700;
+        }
+
+        .calendar-grid .day {
+            text-align: center;
+            padding: 10px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .calendar-grid .day:hover {
+            background: #2a2a4a;
+        }
+
+        .calendar-grid .day.today {
+            border: 2px solid #ff4d4d;
+        }
+
+        .calendar-grid .day.selected {
+            background: #ff4d4d;
+            color: white;
+            font-weight: 700;
+        }
+
+        .calendar-grid .day.has-workout::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+        }
+
+        .calendar-grid .day.other-month {
+            color: #444;
+        }
+
+        .selected-date-display {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #16213e;
+            border-radius: 10px;
+            color: #ff4d4d;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #aaa;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: #16213e;
+            border: 2px solid #2a2a4a;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ff4d4d;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #555;
+        }
+
+        .sets-reps-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff4d4d, #ff6b6b);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ff6b6b, #ff8585);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 77, 77, 0.4);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-danger:hover {
+            background: #ff4d4d;
+            color: white;
+        }
+
+        .btn-edit {
+            background: transparent;
+            color: #3498db;
+            border: 1px solid #3498db;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-edit:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .workout-log {
+            grid-column: 1 / -1;
+        }
+
+        .workout-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .workout-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .workout-list::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+
+        .workout-list::-webkit-scrollbar-thumb {
+            background: #ff4d4d;
+            border-radius: 3px;
+        }
+
+        .workout-item {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #ff4d4d;
+            transition: all 0.3s;
+        }
+
+        .workout-item:hover {
+            transform: translateX(5px);
+            background: #1a2744;
+        }
+
+        .workout-info {
+            flex: 1;
+        }
+
+        .workout-info .exercise-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .workout-info .exercise-details {
+            display: flex;
+            gap: 20px;
+            color: #888;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .workout-info .exercise-details span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .workout-info .exercise-details .value {
+            color: #ff4d4d;
+            font-weight: 700;
+        }
+
+        .workout-info .exercise-notes {
+            margin-top: 8px;
+            color: #777;
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .workout-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #555;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            grid-column: 1 / -1;
+        }
+
+        .stat-card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #2a2a4a;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ff4d4d;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .stat-value.green {
+            color: #00ff88;
+        }
+
+        @media (max-width: 600px) {
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .sets-reps-row {
+                grid-template-columns: 1fr;
+            }
+
+            .workout-actions {
+                flex-direction: column;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #00ff88;
+            color: #0f0f1a;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+
+        .category-badge.chest { background: #e74c3c33; color: #e74c3c; }
+        .category-badge.back { background: #3498db33; color: #3498db; }
+        .category-badge.legs { background: #2ecc7133; color: #2ecc71; }
+        .category-badge.shoulders { background: #f39c1233; color: #f39c12; }
+        .category-badge.arms { background: #9b59b633; color: #9b59b6; }
+        .category-badge.core { background: #1abc9c33; color: #1abc9c; }
+        .category-badge.cardio { background: #e91e6333; color: #e91e63; }
+        .category-badge.other { background: #95a5a633; color: #95a5a6; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            border: 2px solid #ff4d4d;
+        }
+
+        .modal h2 {
+            color: #ff4d4d;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons .btn {
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: #2a2a4a;
+            color: #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #3a3a5a;
+        }
+
+        #importFile {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>🏋️ <span>Gym</span> Diary</h1>
+            <p>Track your workouts, crush your goals</p>
+            <div class="backup-bar">
+                <button class="btn-backup" onclick="exportData()">📥 Export Backup</button>
+                <button class="btn-backup import" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
+                <button class="btn-backup clear-all" onclick="confirmClearAll()">🗑️ Clear All Data</button>
+                <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalWorkouts">0</div>
+                    <div class="stat-label">Today's Exercises</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalSets">0</div>
+                    <div class="stat-label">Total Sets</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalReps">0</div>
+                    <div class="stat-label">Total Reps</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value green" id="totalDays">0</div>
+                    <div class="stat-label">Workout Days</div>
+                </div>
+            </div>
+
+            <!-- Calendar -->
+            <div class="card">
+                <div class="card-title"><span class="icon">📅</span> Calendar</div>
+                <div class="calendar-nav">
+                    <button onclick="changeMonth(-1)">&#8249;</button>
+                    <span class="month-year" id="monthYear"></span>
+                    <button onclick="changeMonth(1)">&#8250;</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+                <div class="selected-date-display" id="selectedDateDisplay"></div>
+            </div>
+
+            <!-- Add Exercise Form -->
+            <div class="card">
+                <div class="card-title"><span class="icon">➕</span> Add Exercise</div>
+                <form id="exerciseForm" onsubmit="addExercise(event)">
+                    <div class="form-group">
+                        <label>Exercise Name</label>
+                        <input type="text" id="exerciseName" placeholder="e.g., Bench Press" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Muscle Group</label>
+                        <select id="exerciseCategory">
+                            <option value="chest">Chest</option>
+                            <option value="back">Back</option>
+                            <option value="legs">Legs</option>
+                            <option value="shoulders">Shoulders</option>
+                            <option value="arms">Arms</option>
+                            <option value="core">Core</option>
+                            <option value="cardio">Cardio</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="sets-reps-row">
+                        <div class="form-group">
+                            <label>Sets</label>
+                            <input type="number" id="exerciseSets" placeholder="e.g., 4" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Reps</label>
+                            <input type="number" id="exerciseReps" placeholder="e.g., 12" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Weight (kg) — optional</label>
+                        <input type="number" id="exerciseWeight" placeholder="e.g., 60" min="0" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Notes — optional</label>
+                        <textarea id="exerciseNotes" placeholder="e.g., Felt strong today, increase weight next time"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="formSubmitBtn">💪 Add Exercise</button>
+                </form>
+            </div>
+
+            <!-- Workout Log -->
+            <div class="card workout-log">
+                <div class="card-title"><span class="icon">📋</span> Workout Log <span id="logDateLabel" style="font-size:0.9rem; color:#888; margin-left:10px;"></span></div>
+                <div class="workout-list" id="workoutList">
+                    <div class="empty-state">
+                        <div class="empty-icon">🏋️</div>
+                        <p>No exercises logged for this day.<br>Start adding your workout!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h2>✏️ Edit Exercise</h2>
+            <div class="form-group">
+                <label>Exercise Name</label>
+                <input type="text" id="editName">
+            </div>
+            <div class="form-group">
+                <label>Muscle Group</label>
+                <select id="editCategory">
+                    <option value="chest">Chest</option>
+                    <option value="back">Back</option>
+                    <option value="legs">Legs</option>
+                    <option value="shoulders">Shoulders</option>
+                    <option value="arms">Arms</option>
+                    <option value="core">Core</option>
+                    <option value="cardio">Cardio</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="sets-reps-row">
+                <div class="form-group">
+                    <label>Sets</label>
+                    <input type="number" id="editSets" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Reps</label>
+                    <input type="number" id="editReps" min="1">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" id="editWeight" min="0" step="0.5">
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="editNotes"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDate = new Date();
+        let workoutData = {};
+        let editingId = null;
+
+        window.onload = function () {
+            loadData();
+            renderCalendar();
+            updateSelectedDateDisplay();
+            renderWorkoutLog();
+            updateAllTimeStats();
+        };
+
+        // ==================== LOCAL STORAGE ====================
+        function saveData() {
+            localStorage.setItem('gymDiaryData', JSON.stringify(workoutData));
+        }
+
+        function loadData() {
+            const data = localStorage.getItem('gymDiaryData');
+            if (data) {
+                workoutData = JSON.parse(data);
+            }
+        }
+
+        // ==================== EXPORT / IMPORT ====================
+        function exportData() {
+            if (Object.keys(workoutData).length === 0) {
+                showToast('No data to export! ⚠️');
+                return;
+            }
+            const blob = new Blob([JSON.stringify(workoutData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const today = new Date().toISOString().split('T')[0];
+            a.download = `gym-diary-backup-${today}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Backup exported! 📥');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (typeof imported === 'object' && imported !== null) {
+                        // Merge with existing data
+                        Object.keys(imported).forEach(key => {
+                            if (!workoutData[key]) {
+                                workoutData[key] = imported[key];
+                            } else {
+                                // Merge exercises, avoid duplicates by id
+                                const existingIds = workoutData[key].map(ex => ex.id);
+                                imported[key].forEach(ex => {
+                                    if (!existingIds.includes(ex.id)) {
+                                        workoutData[key].push(ex);
+                                    }
+                                });
+                            }
+                        });
+                        saveData();
+                        renderCalendar();
+                        renderWorkoutLog();
+                        updateAllTimeStats();
+                        showToast('Backup imported successfully! 📤');
+                    } else {
+                        showToast('Invalid file format! ❌');
+                    }
+                } catch (err) {
+                    showToast('Error reading file! ❌');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function confirmClearAll() {
+            if (confirm('⚠️ Are you sure you want to DELETE ALL workout data? This cannot be undone!')) {
+                if (confirm('🚨 FINAL WARNING: All your gym diary data will be permanently deleted. Continue?')) {
+                    workoutData = {};
+                    saveData();
+                    renderCalendar();
+                    renderWorkoutLog();
+                    updateAllTimeStats();
+                    showToast('All data cleared! 🗑️');
+                }
+            }
+        }
+
+        // ==================== DATE HELPERS ====================
+        function dateKey(date) {
+            const d = new Date(date);
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function formatDisplayDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function isToday(date) {
+            const today = new Date();
+            return date.getDate() === today.getDate() &&
+                date.getMonth() === today.getMonth() &&
+                date.getFullYear() === today.getFullYear();
+        }
+
+        function isSameDay(d1, d2) {
+            return d1.getDate() === d2.getDate() &&
+                d1.getMonth() === d2.getMonth() &&
+                d1.getFullYear() === d2.getFullYear();
+        }
+
+        // ==================== CALENDAR ====================
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+
+            document.getElementById('monthYear').textContent = monthNames[month] + ' ' + year;
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayNames.forEach(name => {
+                const el = document.createElement('div');
+                el.className = 'day-name';
+                el.textContent = name;
+                grid.appendChild(el);
+            });
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const el = document.createElement('div');
+                el.className = 'day other-month';
+                el.textContent = daysInPrevMonth - i;
+                grid.appendChild(el);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const el = document.createElement('div');
+                el.className = 'day';
+
+                const thisDate = new Date(year, month, day);
+
+                if (isToday(thisDate)) el.classList.add('today');
+                if (isSameDay(thisDate, selectedDate)) el.classList.add('selected');
+
+                const key = dateKey(thisDate);
+                if (workoutData[key] && workoutData[key].length > 0) {
+                    el.classList.add('has-workout');
+                }
+
+                el.textContent = day;
+                el.addEventListener('click', () => selectDate(thisDate));
+                grid.appendChild(el);
+            }
+
+            const totalCells = firstDay + daysInMonth;
+            const remaining = (totalCells <= 35 ? 35 : 42) - totalCells;
+            for (let i = 1; i <= remaining; i++) {
+                const el = document.createElement('div');
+                el.className = 'day other-month';
+                el.textContent = i;
+                grid.appendChild(el);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function selectDate(date) {
+            selectedDate = new Date(date);
+            currentDate = new Date(date);
+            renderCalendar();
+            updateSelectedDateDisplay();
+            renderWorkoutLog();
+        }
+
+        function updateSelectedDateDisplay() {
+            document.getElementById('selectedDateDisplay').textContent = formatDisplayDate(selectedDate);
+        }
+
+        // ==================== EXERCISE CRUD ====================
+        function addExercise(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('exerciseName').value.trim();
+            const category = document.getElementById('exerciseCategory').value;
+            const sets = parseInt(document.getElementById('exerciseSets').value);
+            const reps = parseInt(document.getElementById('exerciseReps').value);
+            const weight = document.getElementById('exerciseWeight').value ? parseFloat(document.getElementById('exerciseWeight').value) : null;
+            const notes = document.getElementById('exerciseNotes').value.trim();
+
+            if (!name || !sets || !reps) return;
+
+            const key = dateKey(selectedDate);
+
+            if (!workoutData[key]) {
+                workoutData[key] = [];
+            }
+
+            workoutData[key].push({
+                id: Date.now(),
+                name,
+                category,
+                sets,
+                reps,
+                weight,
+                notes,
+                timestamp: new Date().toISOString()
+            });
+
+            saveData();
+            renderCalendar();
+            renderWorkoutLog();
+            updateAllTimeStats();
+            showToast('Exercise added! 💪');
+
+            document.getElementById('exerciseForm').reset();
+        }
+
+        function deleteExercise(id) {
+            if (!confirm('Delete this exercise?')) return;
+            const key = dateKey(selectedDate);
+            if (workoutData[key]) {
+                workoutData[key] = workoutData[key].filter(ex => ex.id !== id);
+                if (workoutData[key].length === 0) {
+                    delete workoutData[key];
+                }
+                saveData();
+                renderCalendar();
+                renderWorkoutLog();
+                updateAllTimeStats();
+                showToast('Exercise removed! 🗑️');
+            }
+        }
+
+        // ==================== EDIT MODAL ====================
+        function openEditModal(id) {
+            const key = dateKey(selectedDate);
+            const exercise = workoutData[key]?.find(ex => ex.id === id);
+            if (!exercise) return;
+
+            editingId = id;
+            document.getElementById('editName').value = exercise.name;
+            document.getElementById('editCategory').value = exercise.category;
+            document.getElementById('editSets').value = exercise.sets;
+            document.getElementById('editReps').value = exercise.reps;
+            document.getElementById('editWeight').value = exercise.weight || '';
+            document.getElementById('editNotes').value = exercise.notes || '';
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            editingId = null;
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        function saveEdit() {
+            const key = dateKey(selectedDate);
+            const exercise = workoutData[key]?.find(ex => ex.id === editingId);
+            if (!exercise) return;
+
+            const name = document.getElementById('editName').value.trim();
+            const sets = parseInt(document.getElementById('editSets').value);
+            const reps = parseInt(document.getElementById('editReps').value);
+
+            if (!name || !sets || !reps) {
+                showToast('Please fill required fields! ⚠️');
+                return;
+            }
+
+            exercise.name = name;
+            exercise.category = document.getElementById('editCategory').value;
+            exercise.sets = sets;
+            exercise.reps = reps;
+            exercise.weight = document.getElementById('editWeight').value ? parseFloat(document.getElementById('editWeight').value) : null;
+            exercise.notes = document.getElementById('editNotes').value.trim();
+
+            saveData();
+            renderWorkoutLog();
+            closeEditModal();
+            showToast('Exercise updated! ✏️');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('editModal').addEventListener('click', function (e) {
+            if (e.target === this) closeEditModal();
+        });
+
+        // ==================== RENDER WORKOUT LOG ====================
+        function renderWorkoutLog() {
+            const key = dateKey(selectedDate);
+            const exercises = workoutData[key] || [];
+            const list = document.getElementById('workoutList');
+
+            document.getElementById('logDateLabel').textContent = '— ' + formatDisplayDate(selectedDate);
+
+            // Update day stats
+            const totalWorkouts = exercises.length;
+            const totalSets = exercises.reduce((sum, ex) => sum + ex.sets, 0);
+            const totalReps = exercises.reduce((sum, ex) => sum + (ex.sets * ex.reps), 0);
+
+            document.getElementById('totalWorkouts').textContent = totalWorkouts;
+            document.getElementById('totalSets').textContent = totalSets;
+            document.getElementById('totalReps').textContent = totalReps;
+
+            if (exercises.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🏋️</div>
+                        <p>No exercises logged for this day.<br>Start adding your workout!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = exercises.map((ex, index) => `
+                <div class="workout-item">
+                    <div class="workout-info">
+                        <div class="exercise-name">
+                            ${index + 1}. ${ex.name}
+                            <span class="category-badge ${ex.category}">${ex.category}</span>
+                        </div>
+                        <div class="exercise-details">
+                            <span>🔁 Sets: <span class="value">${ex.sets}</span></span>
+                            <span>🏋️ Reps: <span class="value">${ex.reps}</span></span>
+                            ${ex.weight ? `<span>⚖️ Weight: <span class="value">${ex.weight} kg</span></span>` : ''}
+                            <span>📊 Volume: <span class="value">${ex.sets * ex.reps}${ex.weight ? ' × ' + ex.weight + 'kg' : ''}</span></span>
+                        </div>
+                        ${ex.notes ? `<div class="exercise-notes">📝 ${ex.notes}</div>` : ''}
+                    </div>
+                    <div class="workout-actions">
+                        <button class="btn-edit" onclick="openEditModal(${ex.id})">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="deleteExercise(${ex.id})">✕ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==================== ALL-TIME STATS ====================
+        function updateAllTimeStats() {
+            const totalDays = Object.keys(workoutData).filter(key => workoutData[key].length > 0).length;
+            document.getElementById('totalDays').textContent = totalDays;
+        }
+
+        // ==================== TOAST ====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+    </script>
+</body>
+</html>
